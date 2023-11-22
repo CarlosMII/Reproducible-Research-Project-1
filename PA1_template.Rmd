@@ -5,17 +5,53 @@ output:
     keep_md: true
 ---
 
+## Setting Global Options
+```{r}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, fig.width = 10, fig.height = 5, 
+                      fig.keep = 'all', fig.path = 'figures\ ', dev = 'png' )
 
+```
 ## Loading and preprocessing the data
+```{r}
+library(ggplot2)
+library(ggthemes)
 
+path = getwd()
+unzip("repdata_data_activity.zip", exdir = path)
+activity <- read.csv("activity.csv")
 
+activity$date <- as.POSIXct(activity$date, "%Y%m%d")
+
+day <- weekdays(activity$date)
+
+activity <- cbind(activity, day)
+
+summary (activity)
+```
 
 ## What is mean total number of steps taken per day?
+```{r}
+activity_total_steps <- with(activity, aggregate(steps, by = list(date), FUN = sum, na.rm = TRUE))
+names(activity_total_steps) <- c("date","steps")
+hist(activity_total_steps$steps, main = "Total Number of Steps Taken Per Day", xlab = "Total Steps Taken Per Day", ylab = "Number of Days", col = "lightblue", 
+     ylim = c(0,20), breaks = seq(0, 25000, by = 2500))
+```
 
-
+```{r}
+totalStepsSummary <- c(mean(activity_total_steps$steps), median(activity_total_steps$steps))
+print(totalStepsSummary)
+```
 
 ## What is the average daily activity pattern?
+```{r}
+average_daily_activity <- aggregate(activity$steps, by=list(activity$interval), FUN=mean, na.rm=TRUE)
+names(average_daily_activity) <- c("interval", "mean")
+plot(average_daily_activity$interval, average_daily_activity$mean, type = "l", col="lightblue", lwd = 2, xlab="Interval", ylab="Average number of steps", main="Average number of steps per intervals")
+```
 
+```{r}
+average_daily_activity[which.max(average_daily_activity$mean), ]$interval
+```
 
 
 ## Imputing missing values
